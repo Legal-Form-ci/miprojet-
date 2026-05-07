@@ -148,6 +148,149 @@ export type Database = {
         }
         Relationships: []
       }
+      email_campaigns: {
+        Row: {
+          ai_prompt: string | null
+          created_at: string
+          created_by: string | null
+          failed_count: number | null
+          html: string
+          id: string
+          preheader: string | null
+          recipients_count: number | null
+          scheduled_at: string | null
+          segment: string
+          segment_filter: Json | null
+          sent_at: string | null
+          sent_count: number | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          ai_prompt?: string | null
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number | null
+          html: string
+          id?: string
+          preheader?: string | null
+          recipients_count?: number | null
+          scheduled_at?: string | null
+          segment?: string
+          segment_filter?: Json | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          ai_prompt?: string | null
+          created_at?: string
+          created_by?: string | null
+          failed_count?: number | null
+          html?: string
+          id?: string
+          preheader?: string | null
+          recipients_count?: number | null
+          scheduled_at?: string | null
+          segment?: string
+          segment_filter?: Json | null
+          sent_at?: string | null
+          sent_count?: number | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_logs: {
+        Row: {
+          campaign_id: string | null
+          error: string | null
+          id: string
+          kind: string
+          metadata: Json | null
+          provider_id: string | null
+          recipient_email: string
+          recipient_user_id: string | null
+          sent_at: string | null
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          campaign_id?: string | null
+          error?: string | null
+          id?: string
+          kind?: string
+          metadata?: Json | null
+          provider_id?: string | null
+          recipient_email: string
+          recipient_user_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          campaign_id?: string | null
+          error?: string | null
+          id?: string
+          kind?: string
+          metadata?: Json | null
+          provider_id?: string | null
+          recipient_email?: string
+          recipient_user_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "email_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          html: string
+          id: string
+          is_system: boolean | null
+          name: string
+          subject: string | null
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          html: string
+          id?: string
+          is_system?: boolean | null
+          name: string
+          subject?: string | null
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          html?: string
+          id?: string
+          is_system?: boolean | null
+          name?: string
+          subject?: string | null
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
       faqs: {
         Row: {
           answer: string
