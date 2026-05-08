@@ -23,9 +23,13 @@ export function useNewsletterSubscribe(source: string = "article") {
           .from("newsletter_subscribers" as any)
           .insert({ email: trimmed, source });
         if (error && !/duplicate|unique/i.test(error.message)) throw error;
+        // Fire welcome email (non-blocking — don't fail the UX if email is slow)
+        supabase.functions
+          .invoke("welcome-newsletter", { body: { email: trimmed, source } })
+          .catch((e) => console.warn("welcome-newsletter invoke failed:", e?.message));
         toast({
           title: "✅ Inscription confirmée",
-          description: "Vous recevrez bientôt nos actualités MIPROJET.",
+          description: "Un e-mail de bienvenue vient de vous être envoyé.",
         });
         return true;
       } catch (e: any) {
