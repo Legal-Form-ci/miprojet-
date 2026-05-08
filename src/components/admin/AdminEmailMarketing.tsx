@@ -135,7 +135,7 @@ export const AdminEmailMarketing = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <Textarea
-                placeholder='Ex: "Annonce nouvel appel à projets agriculture en Côte d\'Ivoire" ou simplement "newsletter mensuelle"'
+                placeholder={`Ex: "Annonce nouvel appel à projets agriculture en Côte d'Ivoire" ou simplement "newsletter mensuelle"`}
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 rows={3}
