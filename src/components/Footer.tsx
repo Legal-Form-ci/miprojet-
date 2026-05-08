@@ -1,11 +1,22 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Mail, MapPin, Phone, Facebook, Linkedin, MessageCircle } from "lucide-react";
+import { Mail, MapPin, Phone, Facebook, Linkedin, MessageCircle, Send, Loader2 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useNewsletterSubscribe } from "@/hooks/useNewsletterSubscribe";
 import logo from "@/assets/logo-miprojet-new.png";
 import cachet from "@/assets/cachet-miprojet.png";
 
 export const Footer = () => {
   const { t } = useLanguage();
+  const [email, setEmail] = useState("");
+  const { subscribe, submitting } = useNewsletterSubscribe("footer");
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const ok = await subscribe(email);
+    if (ok) setEmail("");
+  };
 
   return (
     <footer className="bg-muted/30 border-t border-border">
@@ -71,6 +82,31 @@ export const Footer = () => {
                 <a href="mailto:info@ivoireprojet.com" className="hover:text-primary transition-colors break-all">info@ivoireprojet.com</a>
               </li>
             </ul>
+          </div>
+        </div>
+
+        {/* Newsletter */}
+        <div className="mt-10 pt-8 border-t border-border">
+          <div className="max-w-2xl mx-auto text-center space-y-3">
+            <h3 className="font-bold text-lg text-foreground flex items-center justify-center gap-2">
+              <Mail className="h-5 w-5 text-primary" /> Newsletter MIPROJET
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Recevez chaque semaine nos opportunités de financement, programmes d'incubation et guides exclusifs.
+            </p>
+            <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+              <Input
+                type="email"
+                placeholder="votre@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="flex-1"
+              />
+              <Button type="submit" disabled={submitting}>
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" />Je m'inscris</>}
+              </Button>
+            </form>
           </div>
         </div>
 

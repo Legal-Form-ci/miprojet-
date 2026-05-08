@@ -33,6 +33,7 @@ import { AdminSettingsManager } from "@/components/admin/AdminSettingsManager";
 import { AdminOpportunitiesManager } from "@/components/admin/AdminOpportunitiesManager";
 import { AdminSubscriptionsManager } from "@/components/admin/AdminSubscriptionsManager";
 import { EmailTemplateManager } from "@/components/admin/EmailTemplateManager";
+import { AdminEmailMarketing } from "@/components/admin/AdminEmailMarketing";
 import { AdminLeadsManager } from "@/components/admin/AdminLeadsManager";
 import { AdminDocumentsManager } from "@/components/admin/AdminDocumentsManager";
 import { AdminFirecrawlScraper } from "@/components/admin/AdminFirecrawlScraper";
@@ -247,6 +248,10 @@ const AdminDashboard = () => {
             
             <TabsContent value="email-templates" className="space-y-6">
               <EmailTemplateManager />
+            </TabsContent>
+
+            <TabsContent value="emails" className="space-y-6">
+              <AdminEmailMarketing />
             </TabsContent>
             
             <TabsContent value="settings" className="space-y-6">
