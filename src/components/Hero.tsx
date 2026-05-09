@@ -36,21 +36,32 @@ export const Hero = () => {
   ];
 
   return (
-    <section className="relative min-h-[85vh] sm:min-h-[90vh] lg:min-h-screen flex items-center pt-16 sm:pt-20 pb-8 sm:pb-12 overflow-hidden bg-primary">
-      <div className="container mx-auto px-4 sm:px-6 relative z-10 max-w-full">
-        <div className="grid lg:grid-cols-2 gap-6 lg:gap-12 items-center min-w-0">
+    <section className="relative min-h-[88vh] lg:min-h-screen flex items-center pt-20 pb-12 overflow-hidden bg-hero">
+      {/* Decorative blobs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full bg-accent/15 blur-3xl animate-blob" />
+        <div className="absolute top-1/3 -right-40 w-[520px] h-[520px] rounded-full bg-primary-glow/25 blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
+        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(hsl(0 0% 100%) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+      </div>
+
+      <div className="container-luxe relative z-10">
+        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center min-w-0">
           {/* Left Content */}
-          <div className="space-y-4 sm:space-y-6 lg:space-y-8 text-primary-foreground text-left">
+          <div className="lg:col-span-7 space-y-6 lg:space-y-8 text-primary-foreground text-left reveal-up">
             {/* News Ticker */}
             {latestNews.length > 0 && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 overflow-hidden">
-                <div className="flex items-center gap-2 mb-1">
-                  <Newspaper className="h-4 w-4 text-accent flex-shrink-0" />
-                  <span className="text-xs font-semibold text-accent uppercase">Actualités</span>
+              <div className="inline-flex flex-col gap-1.5 max-w-full bg-white/[0.06] backdrop-blur-md rounded-2xl p-4 border border-white/15 overflow-hidden shadow-luxe">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 animate-ping"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
+                  </span>
+                  <Newspaper className="h-3.5 w-3.5 text-accent flex-shrink-0" />
+                  <span className="text-[11px] font-bold text-accent uppercase tracking-[0.18em]">Actualités en direct</span>
                 </div>
                 <div className="space-y-1">
                   {latestNews.map((n) => (
-                    <Link key={n.id} to={`/news/${n.id}`} className="block text-sm text-white/90 hover:text-accent transition-colors truncate max-w-full overflow-hidden">
+                    <Link key={n.id} to={`/news/${n.id}`} className="block text-sm text-white/90 hover:text-accent transition-colors truncate max-w-full">
                       → {n.title}
                     </Link>
                   ))}
@@ -59,67 +70,66 @@ export const Hero = () => {
             )}
 
             {/* Title */}
-            <div className="space-y-3 sm:space-y-4 min-w-0">
-              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight tracking-tight text-white break-words">
-                Plateforme Panafricaine
+            <div className="space-y-4 min-w-0">
+              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold text-white/90 uppercase tracking-wider backdrop-blur-md">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Plateforme Panafricaine · Multi-utilisateur
+              </span>
+              <h1 className="text-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white">
+                Structurez,<br />
+                <span className="gold-text">financez</span> et incubez
               </h1>
-              <h2 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold text-accent leading-snug break-words">
-                de Structuration et d'Orientation de Projets
+              <h2 className="text-lg sm:text-xl md:text-2xl font-medium text-white/80 leading-snug max-w-2xl">
+                vos projets en Afrique — accompagnement professionnel pour porteurs, investisseurs privés et bailleurs institutionnels.
               </h2>
             </div>
-            
-            <p className="text-sm sm:text-base lg:text-lg text-white/90 leading-relaxed max-w-xl">
+
+            <p className="text-base lg:text-lg text-white/75 leading-relaxed max-w-2xl">
               {t('hero.description')}
             </p>
 
             {/* Highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 max-w-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-2xl">
               {highlights.map((item, index) => (
-                <div key={index} className="flex items-center gap-2 text-white/90">
-                  <CheckCircle className="h-5 w-5 text-accent flex-shrink-0" />
+                <div key={index} className="flex items-center gap-2.5 text-white/90">
+                  <span className="grid place-items-center h-6 w-6 rounded-full bg-accent/20 ring-1 ring-accent/40 flex-shrink-0">
+                    <CheckCircle className="h-3.5 w-3.5 text-accent" />
+                  </span>
                   <span className="text-sm sm:text-base">{item}</span>
                 </div>
               ))}
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-8 py-4 sm:py-6 border-t border-b border-white/20">
-              <div className="text-left">
-                <div className="flex items-center gap-1 sm:gap-2 mb-1">
-                  <TrendingUp className="h-5 w-5 text-accent" />
-                  <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">105+</span>
+            <div className="grid grid-cols-3 gap-4 sm:gap-6 py-5 border-t border-b border-white/15">
+              {[
+                { icon: TrendingUp, value: '105+', label: t('hero.projectsStructured') },
+                { icon: Users, value: '65+', label: t('hero.activeMembers') },
+                { icon: Shield, value: '5', label: t('hero.countriesCovered') },
+              ].map((s, i) => (
+                <div key={i} className="text-left">
+                  <div className="flex items-center gap-2 mb-1">
+                    <s.icon className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
+                    <span className="text-display text-2xl sm:text-3xl md:text-4xl text-white">{s.value}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-white/70">{s.label}</p>
                 </div>
-                <p className="text-xs sm:text-sm text-white/80">{t('hero.projectsStructured')}</p>
-              </div>
-              <div className="text-left">
-                <div className="flex items-center gap-1 sm:gap-2 mb-1">
-                  <Users className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
-                  <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">65+</span>
-                </div>
-                <p className="text-xs sm:text-sm text-white/80">{t('hero.activeMembers')}</p>
-              </div>
-              <div className="text-left">
-                <div className="flex items-center gap-1 sm:gap-2 mb-1">
-                  <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
-                  <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">5</span>
-                </div>
-                <p className="text-xs sm:text-sm text-white/80">{t('hero.countriesCovered')}</p>
-              </div>
+              ))}
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 min-w-0">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 min-w-0 pt-2">
               <Link to="/submit-project" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold whitespace-normal text-center">
-                  <span className="truncate">{t('hero.submitProject')}</span>
-                  <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" />
+                <Button size="lg" className="group w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-luxe relative overflow-hidden">
+                  <span className="relative z-10 truncate">{t('hero.submitProject')}</span>
+                  <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0 relative z-10 transition-transform group-hover:translate-x-1" />
+                  <span className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Button>
               </Link>
               <Link to="/projects" className="w-full sm:w-auto">
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 whitespace-normal text-center"
+                  className="w-full bg-white/5 border-white/25 text-white hover:bg-white/10 hover:border-white/40 backdrop-blur-md"
                 >
                   {t('hero.discoverProjects')}
                 </Button>
@@ -128,22 +138,23 @@ export const Hero = () => {
           </div>
 
           {/* Right Image */}
-          <div className="relative hidden lg:flex justify-center">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+          <div className="lg:col-span-5 relative hidden lg:flex justify-center reveal-up" style={{ animationDelay: '0.2s' }}>
+            <div className="relative rounded-3xl overflow-hidden shadow-luxe ring-1 ring-white/10">
               <img
                 src={heroImage}
                 alt="Entrepreneurs africains collaborant sur MIPROJET"
-                className="w-full h-auto object-cover"
+                className="w-full h-auto object-cover transition-transform duration-700 hover:scale-105"
                 loading="eager"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
             </div>
-            <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-xl shadow-xl animate-fade-in">
-              <p className="text-sm text-muted-foreground">{t('hero.qualityLabel')}</p>
-              <p className="text-2xl font-bold text-primary">Score A</p>
+            <div className="absolute -bottom-6 -left-6 bg-card p-4 rounded-2xl shadow-luxe ring-1 ring-border animate-float">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{t('hero.qualityLabel')}</p>
+              <p className="text-display text-3xl text-primary mt-1">Score A</p>
             </div>
-            <div className="absolute -top-6 -right-6 bg-white p-4 rounded-xl shadow-xl animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <p className="text-sm text-muted-foreground">{t('hero.projectsAccompanied')}</p>
-              <p className="text-2xl font-bold text-secondary">1,2 Mds FCFA</p>
+            <div className="absolute -top-6 -right-6 bg-card p-4 rounded-2xl shadow-luxe ring-1 ring-border animate-float" style={{ animationDelay: '1.5s' }}>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{t('hero.projectsAccompanied')}</p>
+              <p className="text-display text-2xl gold-text mt-1">1,2 Mds FCFA</p>
             </div>
           </div>
         </div>

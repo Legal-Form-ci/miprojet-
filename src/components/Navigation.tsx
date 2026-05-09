@@ -46,11 +46,11 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="container mx-auto px-4">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/75 backdrop-blur-xl border-b border-border/60 supports-[backdrop-filter]:bg-background/65">
+      <div className="container-luxe">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center" aria-label="MIPROJET — Accueil">
-            <img src={logo} alt="MIPROJET" className="h-12 w-auto max-w-[160px] object-contain" />
+          <Link to="/" className="flex items-center group" aria-label="MIPROJET — Accueil">
+            <img src={logo} alt="MIPROJET" className="h-11 w-auto max-w-[160px] object-contain transition-transform group-hover:scale-105" />
           </Link>
 
           {/* Desktop Navigation */}
