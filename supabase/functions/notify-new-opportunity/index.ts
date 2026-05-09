@@ -1,4 +1,4 @@
-import { sendEmail, brandedEmailShell, corsHeaders } from "../_shared/resend.ts";
+import { sendMail, brandedEmailShell, corsHeaders } from "../_shared/mailer.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
     let sent = 0, failed = 0;
     const logs: any[] = [];
     for (const r of recipients) {
-      const result = await sendEmail({
+      const result = await sendMail({
         to: r.email!,
         subject: `🚀 Nouvelle opportunité : ${opp.title}`,
         html,

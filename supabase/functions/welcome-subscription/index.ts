@@ -1,4 +1,4 @@
-import { sendEmail, brandedEmailShell, corsHeaders } from "../_shared/resend.ts";
+import { sendMail, brandedEmailShell, corsHeaders } from "../_shared/mailer.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
       ctaLabel: "Accéder à mon espace",
     });
 
-    const result = await sendEmail({
+    const result = await sendMail({
       to: profile.email,
       subject: `🎉 Bienvenue dans MIPROJET ${plan}`,
       html,
