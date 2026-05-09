@@ -212,6 +212,7 @@ export type Database = {
           id: string
           kind: string
           metadata: Json | null
+          provider: string | null
           provider_id: string | null
           recipient_email: string
           recipient_user_id: string | null
@@ -225,6 +226,7 @@ export type Database = {
           id?: string
           kind?: string
           metadata?: Json | null
+          provider?: string | null
           provider_id?: string | null
           recipient_email: string
           recipient_user_id?: string | null
@@ -238,6 +240,7 @@ export type Database = {
           id?: string
           kind?: string
           metadata?: Json | null
+          provider?: string | null
           provider_id?: string | null
           recipient_email?: string
           recipient_user_id?: string | null
@@ -254,6 +257,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_provider_usage: {
+        Row: {
+          created_at: string
+          daily_limit: number
+          id: string
+          provider: string
+          sent_count: number
+          updated_at: string
+          usage_date: string
+        }
+        Insert: {
+          created_at?: string
+          daily_limit: number
+          id?: string
+          provider: string
+          sent_count?: number
+          updated_at?: string
+          usage_date?: string
+        }
+        Update: {
+          created_at?: string
+          daily_limit?: number
+          id?: string
+          provider?: string
+          sent_count?: number
+          updated_at?: string
+          usage_date?: string
+        }
+        Relationships: []
       }
       email_templates: {
         Row: {
@@ -1804,6 +1837,11 @@ export type Database = {
       }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      increment_email_provider_usage: {
+        Args: { _provider: string }
+        Returns: number
+      }
+      pick_email_provider: { Args: never; Returns: string }
       user_profile_type: { Args: { _user_id: string }; Returns: string }
     }
     Enums: {
