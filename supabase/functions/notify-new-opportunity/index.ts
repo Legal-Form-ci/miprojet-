@@ -67,28 +67,17 @@ Deno.serve(async (req) => {
     });
 
     let sent = 0, failed = 0;
-    const logs: any[] = [];
     for (const r of recipients) {
       const result = await sendMail({
         to: r.email!,
         subject: `🚀 Nouvelle opportunité : ${opp.title}`,
         html,
-        tags: [{ name: "kind", value: "new_opportunity" }, { name: "opp", value: opp.id }],
-      });
-      logs.push({
         kind: "new_opportunity",
-        recipient_email: r.email,
-        recipient_user_id: r.user_id,
-        subject: `🚀 Nouvelle opportunité : ${opp.title}`,
-        status: result.ok ? "sent" : "failed",
-        provider_id: result.id ?? null,
-        error: result.error ?? null,
-        metadata: { opportunity_id: opp.id },
+        recipientUserId: r.user_id,
       });
       if (result.ok) sent++; else failed++;
-      await new Promise((res) => setTimeout(res, 110));
+      await new Promise((res) => setTimeout(res, 120));
     }
-    if (logs.length) await supabase.from("email_logs").insert(logs);
 
     return new Response(JSON.stringify({ ok: true, sent, failed, total: recipients.length }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
