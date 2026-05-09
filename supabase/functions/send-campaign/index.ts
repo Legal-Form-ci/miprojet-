@@ -1,5 +1,5 @@
 import { requireAdmin } from "../_shared/requireAdmin.ts";
-import { sendEmail, corsHeaders } from "../_shared/resend.ts";
+import { sendMail, corsHeaders } from "../_shared/mailer.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
@@ -50,29 +50,20 @@ Deno.serve(async (req) => {
     }).eq("id", campaign.id);
 
     let sent = 0, failed = 0;
-    const logs: any[] = [];
-    // Sequential with small throttle to respect Resend rate limits (~10/s)
+    // Sequential with small throttle to respect provider rate limits.
+    // sendMail() handles per-message logging, counter increment, and Brevo→Resend failover.
     for (const r of recipients) {
-      const result = await sendEmail({
+      const result = await sendMail({
         to: r.email,
         subject: campaign.subject,
         html: campaign.html,
-        tags: [{ name: "campaign", value: campaign.id }],
-      });
-      logs.push({
-        campaign_id: campaign.id,
         kind: "campaign",
-        recipient_email: r.email,
-        recipient_user_id: r.user_id ?? null,
-        subject: campaign.subject,
-        status: result.ok ? "sent" : "failed",
-        provider_id: result.id ?? null,
-        error: result.error ?? null,
+        campaignId: campaign.id,
+        recipientUserId: r.user_id,
       });
       if (result.ok) sent++; else failed++;
-      await new Promise((res) => setTimeout(res, 110));
+      await new Promise((res) => setTimeout(res, 120));
     }
-    if (logs.length) await supabase.from("email_logs").insert(logs);
 
     await supabase.from("email_campaigns").update({
       status: "sent",

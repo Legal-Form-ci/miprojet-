@@ -1,4 +1,4 @@
-import { sendEmail, brandedEmailShell, corsHeaders } from "../_shared/resend.ts";
+import { sendMail, brandedEmailShell, corsHeaders } from "../_shared/mailer.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
@@ -50,22 +50,12 @@ Deno.serve(async (req) => {
       ctaLabel: "Accéder à mon espace",
     });
 
-    const result = await sendEmail({
+    const result = await sendMail({
       to: profile.email,
       subject: `🎉 Bienvenue dans MIPROJET ${plan}`,
       html,
-      tags: [{ name: "kind", value: "subscription_welcome" }, { name: "plan", value: plan }],
-    });
-
-    await supabase.from("email_logs").insert({
       kind: "subscription_welcome",
-      recipient_email: profile.email,
-      recipient_user_id: userId,
-      subject: `🎉 Bienvenue dans MIPROJET ${plan}`,
-      status: result.ok ? "sent" : "failed",
-      provider_id: result.id ?? null,
-      error: result.error ?? null,
-      metadata: { plan },
+      recipientUserId: userId,
     });
 
     return new Response(JSON.stringify({ ok: result.ok, id: result.id, error: result.error }), {
