@@ -1,82 +1,152 @@
+# Plan — Refonte design MIPROJET + Système mailing professionnel complet
 
-# Plan d'exécution global
-
-La clé Resend (`RESEND_API_KEY`) est désormais stockée comme secret côté serveur. Je vais exécuter le travail en **6 phases** pour livrer quelque chose de testable à chaque étape, plutôt qu'un big-bang qui casserait la prod.
-
-> **Note importante** : votre `.env` contient des commandes shell collées au-dessus des variables Vite (`cd /workspaces/...`, `git push --force --`). Je vais le nettoyer en phase 0 — sinon le build casse silencieusement.
+Demande très large couvrant 4 chantiers majeurs. Je propose une exécution par phases pour livrer du concret rapidement, puis itérer. Chaque phase est livrable indépendamment.
 
 ---
 
-## Phase 0 — Diagnostic & nettoyage (rapide)
-1. Nettoyer `.env` (retirer les lignes shell parasites).
-2. Lire `AdminOpportunitiesManager`, `Opportunities.tsx`, `Subscription.tsx`, `MiProjetPlusApp.tsx`, `AdminSubscriptionsManager` (si existe) pour comprendre pourquoi les listes sont vides.
-3. Vérifier en base : `select count(*) from opportunities`, `from subscription_plans`, `from mp_projects`, `from user_subscriptions`. Confirmer si c'est un bug RLS, un bug UI, ou des données manquantes.
-4. Lister les fichiers liés à la newsletter (`useNewsletterSubscribe`, footer, etc.).
+## Phase 1 — Fondations design & UI (priorité immédiate)
 
-## Phase 1 — Backend Resend + Email Center
-1. **Edge functions Supabase** :
-   - `send-email` : envoi unitaire (admin / système). Auth admin obligatoire.
-   - `send-campaign` : envoi en lot à un segment (`all`, `newsletter`, `premium`, `elite`, `custom_ids`). Boucle batch 100/req, throttling.
-   - `ai-generate-email` : génère sujet + HTML (template MIPROJET responsive avec logo) à partir d'un prompt via Lovable AI Gateway (`google/gemini-3-flash-preview`).
-   - `notify-new-opportunity` : déclenchée à la publication d'une opportunité ; envoie automatiquement aux abonnés Premium + Elite actifs.
-   - `welcome-newsletter` : confirmation d'inscription footer.
-   - `welcome-subscription` : email de bienvenue après abonnement payant.
-2. **Tables nouvelles** (migration) :
-   - `email_campaigns` (id, subject, html, segment, status, sent_count, created_by, scheduled_at, sent_at).
-   - `email_logs` (campaign_id, recipient_email, status, provider_id, error, sent_at).
-   - `email_templates` (id, name, html, variables jsonb) pré-remplie avec 3 templates (newsletter, opportunité, transactionnel).
-   - RLS : admin only sur tout sauf `email_logs.select` pour l'utilisateur concerné.
-3. **Triggers DB** : à l'`UPDATE` de `opportunities` quand `status` passe à `published`, `pg_net.http_post` vers `notify-new-opportunity`.
+**Objectif** : corriger la refonte précédente (débordements, alignements, responsive, charte non cohérente avec le logo MiProjet vert/bleu).
 
-## Phase 2 — Modules cassés
-1. **Opportunités admin + public** : appliquer les correctifs déjà décrits dans `.lovable/plan.md` (dialog, WYSIWYG body, refonte page publique calquée sur News).
-2. **Abonnements** : vérifier que `subscription_plans` est peuplée ; sinon seed Free/Pro/Premium/Elite. Réafficher la liste dans `AdminSubscriptionsManager` et `/subscription`.
-3. **MiProjet+** : auditer `MiProjetPlusApp` (probable régression de routing ou requête RLS). Réparer affichage admin + porteur de projet.
+- Reprendre `src/index.css` : tokens cohérents avec le logo MiProjet (bleu navy + vert + accents), oklch, ombres, gradients premium
+- Auditer et corriger : `Hero`, `Navigation`, `Footer`, `Features`, `FundingTypes`, `HowItWorks`, `StatsSection`, `TestimonialsSection`, `CallToAction`
+- Grille responsive cohérente (containers, paddings, breakpoints sm/md/lg/xl/2xl)
+- Hiérarchie typographique pro (display + body, échelle modulaire)
+- Newsletter footer : ajouter champ "Nom complet" en plus de l'email
+- Vérification visuelle mobile / tablette / desktop
 
-## Phase 3 — Espace admin "Email Marketing"
-Nouvelle section `/admin/emails` avec onglets :
-- **Composer** : prompt → bouton "Générer avec IA" → preview HTML → choix segment → "Envoyer maintenant" / "Programmer".
-- **Campagnes** : liste, statuts, taux d'ouverture (best-effort via Resend webhook).
-- **Abonnés newsletter** : liste, export CSV, désinscription manuelle.
-- **Templates** : édition des 3 templates de base.
-- **Logs** : derniers envois et erreurs.
+## Phase 2 — Refonte unifiée Email Marketing (admin)
 
-## Phase 4 — Newsletter footer + automatisations
-1. Le formulaire footer existant (`useNewsletterSubscribe`) déclenche `welcome-newsletter` (email de bienvenue réel envoyé via Resend).
-2. Le checkout d'abonnement réussi déclenche `welcome-subscription`.
-3. Publication d'une opportunité → email auto Premium/Elite (via le trigger phase 1).
+**Objectif** : fusionner `AdminEmailMarketing` + `EmailTemplateManager` en un seul espace centralisé.
 
-## Phase 5 — Refonte UI complète
-**Important** : "refonte complète" est un projet de plusieurs jours en soi. Je vais livrer une **refonte progressive** :
-- Nouveau design system dans `src/styles.css` (palette MIPROJET vert/or, typo Sora + Manrope, animations soignées).
-- Refonte Hero, Navigation, Footer, sections home (`StatsSection`, `ServicesSection`, `LatestNews`, CTA).
-- Refonte pages clés : `Subscription`, `Opportunities`, `News`, `About`.
-- Les autres pages héritent automatiquement du nouveau design system.
+Nouveau composant `AdminMailingHub` avec onglets :
+1. **Tableau de bord** (monitoring temps réel — voir Phase 3)
+2. **Campagnes** (créer / éditer / envoyer / planifier)
+3. **Templates** (bienvenue, paiement, opportunité, etc. — éditables)
+4. **Automatisations** (mapping événement → template + segment)
+5. **Segments & Abonnés** (newsletter + désabonnés)
+6. **Logs & Événements** (livrés, ouverts, cliqués, bounces)
 
-## Phase 6 — Tests réels
-1. Envoi test Resend depuis admin → boîte mail réelle.
-2. Inscription newsletter footer → email reçu.
-3. Publication d'une opportunité de test → email Premium/Elite reçu.
-4. Rapport final + liens admin (Edge Functions, logs, SQL editor).
+Le menu admin ne montre plus qu'**une seule entrée** "Email Marketing".
+
+## Phase 3 — Monitoring temps réel mailing
+
+Nouveau dashboard `AdminEmailMonitoring` :
+- Quotas du jour Brevo (300) / Resend (100) avec barres de progression
+- Total envoyés / livrés / ouverts / cliqués / bounces / plaintes (24h, 7j, 30j) — depuis `email_logs` + `email_events`
+- Taux de délivrabilité, ouverture, clic
+- Échecs récents avec détail erreur + bouton "Renvoyer"
+- Statut campagnes en cours
+- Stats par segment (newsletter, premium, elite, all_users)
+- Désabonnements récents
+- Provider actif / failover
+
+Refresh auto via React Query (polling 15s).
+
+## Phase 4 — Éditeur visuel WYSIWYG avancé pour campagnes
+
+Remplacer l'éditeur HTML brut actuel par un éditeur visuel (basé sur **TipTap** déjà compatible React) :
+- Génération IA initiale (`ai-generate-email`) → résultat injecté dans l'éditeur visuel
+- Toolbar : titres, gras/italique, liens, listes, alignement, couleurs
+- **Insertion d'images** par upload local (JPG/PNG/WEBP) → bucket Supabase Storage `email-assets` (public)
+- **Insertion de boutons CTA** (composant inséré dans le HTML)
+- **Insertion de documents** (PDF/Word/Excel/PPTX/CSV) → upload bucket `email-attachments`
+- **Position image** (dropdown) : sous le logo / avant texte / milieu / après texte / pied
+- **Position document** (dropdown) : bouton haut / milieu / bas / pièce jointe
+- Preview live (desktop + mobile)
+- Logo MiProjet **toujours injecté en en-tête** (Base64 fallback)
+
+Composant : `src/components/admin/EmailVisualEditor.tsx` + bucket storage migration.
+
+## Phase 5 — Templates emails pro (style Scoly)
+
+Refonte du `brandedEmailShell` dans `supabase/functions/_shared/resend.ts` :
+- Header : bandeau gradient bleu navy MiProjet + logo blanc centré (Base64)
+- Tagline "Entrepreneuriat jeune"
+- Salutation personnalisée `Bonjour {first_name} {last_name},`
+- Corps : typographie pro, espaces généreux, CTA bouton large
+- Footer : liens utiles + **lien désabonnement obligatoire** (token unique)
+- Compatible Outlook / Gmail / Apple Mail (tables HTML)
+- Headers propres (List-Unsubscribe, Reply-To)
+
+Templates refondus : `welcome-newsletter`, `welcome-subscription`, `notify-new-opportunity`, + nouveaux : `payment-confirmation`, `subscription-expiring`, `subscription-renewed`, `password-reset`.
+
+## Phase 6 — Désabonnement réel
+
+- Migration : table `email_unsubscribes (email, token, reason, created_at)` + colonne `unsubscribe_token` sur `newsletter_subscribers`
+- Edge function publique `unsubscribe` (GET avec token) → marque désabonné + page de confirmation
+- Tous les envois vérifient la liste de désabonnement avant d'envoyer
+- Header `List-Unsubscribe` automatique
+- Page `/unsubscribe?token=...` côté frontend
+
+## Phase 7 — Actualités & Opportunités → envoi auto
+
+Dans `AdminNewsManager` et `AdminOpportunitiesManager` :
+- Checkbox "Envoyer par email"
+- Select "Segment destinataires" (newsletter / premium / elite / all_users)
+- Upload image de couverture (déjà partiellement existant — vérifier)
+- À la publication : déclencher `send-campaign` avec template visuel reprenant cover + titre + extrait + CTA "Lire la suite"
+
+## Phase 8 — Automatisations événementielles
+
+Vérifier / créer les triggers :
+- Inscription newsletter → `welcome-newsletter` ✅ déjà OK
+- Création compte → email de confirmation
+- Paiement réussi (webhook FedaPay/Wave/Money Fusion) → `welcome-subscription` ✅ + `payment-confirmation`
+- Nouvelle opportunité publiée → `notify-new-opportunity` (avec checkbox Phase 7)
+- Cron quotidien : abonnements expirant dans 7j → `subscription-expiring`
+- Cron quotidien : abonnements renouvelés → `subscription-renewed`
+- Reset mot de passe (Supabase Auth) → template custom
+
+## Phase 9 — Délivrabilité & anti-spam
+
+- Optimisation HTML : tables, inline CSS, poids < 100KB
+- Headers : `List-Unsubscribe`, `List-Unsubscribe-Post`, `Reply-To`, `Message-ID`
+- Vérifier SPF/DKIM/DMARC (instructions OVH/Brevo/Resend)
+- Texte alternatif (text/plain) auto-généré depuis HTML
+- Tracking pixel optionnel
+- Warm-up : limiter envois batch à 50/h sur nouveau domaine
 
 ---
 
-## Détails techniques clés
+## Détails techniques
 
-| Élément | Implémentation |
-|---|---|
-| Envoi Resend | `fetch('https://api.resend.com/emails', { headers: { Authorization: 'Bearer ' + RESEND_API_KEY } })` depuis edge function (clé jamais exposée au client) |
-| Sender | `MIPROJET <noreply@ivoireprojet.com>` (domaine déjà vérifié selon vous — je vérifierai via l'API Resend en début de phase 1) |
-| IA | Lovable AI Gateway, modèle `google/gemini-3-flash-preview`, prompt système : "Tu es un email marketer pro. Génère un email HTML responsive aux couleurs MIPROJET (vert #16a34a, or #eab308), avec header logo + CTA + footer désinscription." |
-| Segmentation Premium/Elite | `select user_id, email from user_subscriptions us join subscription_plans p on p.id=us.plan_id join profiles pr on pr.id=us.user_id where us.status='active' and p.name in ('Premium','Elite')` |
-| Anti-doublon | Table `email_logs` avec contrainte `unique(campaign_id, recipient_email)` |
+```text
+Nouveaux fichiers principaux:
+  src/components/admin/AdminMailingHub.tsx            (hub unifié)
+  src/components/admin/EmailMonitoringDashboard.tsx   (Phase 3)
+  src/components/admin/EmailVisualEditor.tsx          (Phase 4 — TipTap)
+  src/components/admin/EmailAutomationsManager.tsx    (Phase 8)
+  src/pages/Unsubscribe.tsx                           (Phase 6)
+  supabase/functions/unsubscribe/index.ts             (Phase 6)
+  supabase/functions/payment-confirmation/index.ts    (Phase 8)
+  supabase/functions/subscription-expiring/index.ts   (Phase 8)
+  supabase/functions/_shared/branded-email.ts         (refonte shell)
+
+Migrations:
+  - bucket storage 'email-assets' (public) + 'email-attachments' (privé)
+  - table email_unsubscribes
+  - colonne unsubscribe_token sur newsletter_subscribers + profiles
+  - colonnes send_by_email + email_segment sur news + opportunities
+  - cron jobs (pg_cron) pour expiration / renewal
+
+Dépendances à ajouter:
+  - @tiptap/react @tiptap/starter-kit @tiptap/extension-image @tiptap/extension-link
+```
 
 ---
 
-## Ce que je NE peux PAS garantir en une seule passe
-- Une refonte UI "Awwwards-level" sur **toutes** les 40+ pages du site en un seul tour. Je livre le design system + pages prioritaires en phase 5, puis on itère.
-- Les statistiques d'ouverture Resend nécessitent la configuration d'un webhook Resend → je laisserai l'endpoint prêt mais vous devrez coller l'URL dans le dashboard Resend.
+## Ordre d'exécution proposé
 
----
+Je propose de livrer dans cet ordre pour maximiser l'impact visible :
 
-**Approuvez ce plan et je lance l'exécution dans l'ordre Phase 0 → Phase 6.** Si vous voulez prioriser autrement (par ex : Resend + opportunités cassées d'abord, refonte UI plus tard), dites-le maintenant.
+1. **Phase 1** (fondations design — fix immédiat de ce que vous voyez) ← **commencer ici**
+2. **Phase 5 + 6** (templates emails pro + désabonnement)
+3. **Phase 2 + 3** (hub admin unifié + monitoring)
+4. **Phase 4** (éditeur visuel + uploads)
+5. **Phase 7 + 8** (envoi auto news/opportunités + automatisations cron)
+6. **Phase 9** (durcissement délivrabilité)
+
+C'est environ **3 à 5 itérations** vu l'ampleur. Chaque phase reste utilisable seule.
+
+**Confirmez-vous cet ordre, ou préférez-vous prioriser autrement (ex : monitoring + éditeur visuel d'abord) ?** Une fois validé, je commence immédiatement la Phase 1.
