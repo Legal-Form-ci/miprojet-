@@ -11,11 +11,12 @@ import cachet from "@/assets/cachet-miprojet.png";
 export const Footer = () => {
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
   const { subscribe, submitting } = useNewsletterSubscribe("footer");
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = await subscribe(email);
-    if (ok) setEmail("");
+    const ok = await subscribe(email, fullName);
+    if (ok) { setEmail(""); setFullName(""); }
   };
 
   return (
@@ -94,16 +95,23 @@ export const Footer = () => {
             <p className="text-sm text-muted-foreground">
               Recevez chaque semaine nos opportunités de financement, programmes d'incubation et guides exclusifs.
             </p>
-            <form onSubmit={onSubmit} className="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+            <form onSubmit={onSubmit} className="grid sm:grid-cols-2 gap-2 max-w-xl mx-auto">
+              <Input
+                type="text"
+                placeholder="Nom complet"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="sm:col-span-1"
+              />
               <Input
                 type="email"
                 placeholder="votre@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="flex-1"
+                className="sm:col-span-1"
               />
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" disabled={submitting} className="sm:col-span-2">
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" />Je m'inscris</>}
               </Button>
             </form>

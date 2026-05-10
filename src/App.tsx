@@ -51,6 +51,7 @@ const MiProjetPlusLanding = lazy(() => import("./pages/miprojet-plus/MiProjetPlu
 const MiProjetPlusApp = lazy(() => import("./pages/miprojet-plus/MiProjetPlusApp"));
 const Journey = lazy(() => import("./pages/Journey"));
 const ShortLink = lazy(() => import("./pages/ShortLink"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 
 const queryClient = new QueryClient();
 
@@ -192,6 +193,11 @@ const App = () => (
             <Route path="/news" element={<News />} />
             <Route path="/news/:id" element={<News />} />
             <Route path="/actualites" element={<News />} />
+            <Route path="/unsubscribe" element={
+              <Suspense fallback={<PageLoader />}>
+                <Unsubscribe />
+              </Suspense>
+            } />
 
             {/* Short share links: /n/art003/04/026, /o/..., /p/..., /d/... */}
             {(["n", "o", "p", "d"] as const).map((t) => (
