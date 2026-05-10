@@ -205,13 +205,49 @@ export type Database = {
         }
         Relationships: []
       }
+      email_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          payload: Json
+          provider: string
+          provider_message_id: string | null
+          recipient_email: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          payload: Json
+          provider: string
+          provider_message_id?: string | null
+          recipient_email?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          provider?: string
+          provider_message_id?: string | null
+          recipient_email?: string | null
+        }
+        Relationships: []
+      }
       email_logs: {
         Row: {
+          bounced_at: string | null
           campaign_id: string | null
+          clicked_at: string | null
+          complained_at: string | null
+          delivered_at: string | null
           error: string | null
           id: string
           kind: string
+          last_event: string | null
           metadata: Json | null
+          opened_at: string | null
           provider: string | null
           provider_id: string | null
           recipient_email: string
@@ -221,11 +257,17 @@ export type Database = {
           subject: string | null
         }
         Insert: {
+          bounced_at?: string | null
           campaign_id?: string | null
+          clicked_at?: string | null
+          complained_at?: string | null
+          delivered_at?: string | null
           error?: string | null
           id?: string
           kind?: string
+          last_event?: string | null
           metadata?: Json | null
+          opened_at?: string | null
           provider?: string | null
           provider_id?: string | null
           recipient_email: string
@@ -235,11 +277,17 @@ export type Database = {
           subject?: string | null
         }
         Update: {
+          bounced_at?: string | null
           campaign_id?: string | null
+          clicked_at?: string | null
+          complained_at?: string | null
+          delivered_at?: string | null
           error?: string | null
           id?: string
           kind?: string
+          last_event?: string | null
           metadata?: Json | null
+          opened_at?: string | null
           provider?: string | null
           provider_id?: string | null
           recipient_email?: string
