@@ -7,8 +7,9 @@ export function useNewsletterSubscribe(source: string = "article") {
   const [submitting, setSubmitting] = useState(false);
 
   const subscribe = useCallback(
-    async (email: string) => {
+    async (email: string, fullName?: string) => {
       const trimmed = (email || "").trim().toLowerCase();
+      const name = (fullName || "").trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
         toast({
           title: "Adresse invalide",
@@ -21,11 +22,10 @@ export function useNewsletterSubscribe(source: string = "article") {
       try {
         const { error } = await supabase
           .from("newsletter_subscribers" as any)
-          .insert({ email: trimmed, source });
+          .insert({ email: trimmed, source, full_name: name || null });
         if (error && !/duplicate|unique/i.test(error.message)) throw error;
-        // Fire welcome email (non-blocking — don't fail the UX if email is slow)
         supabase.functions
-          .invoke("welcome-newsletter", { body: { email: trimmed, source } })
+          .invoke("welcome-newsletter", { body: { email: trimmed, source, full_name: name } })
           .catch((e) => console.warn("welcome-newsletter invoke failed:", e?.message));
         toast({
           title: "✅ Inscription confirmée",

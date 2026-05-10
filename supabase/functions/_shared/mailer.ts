@@ -8,9 +8,9 @@
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (for counter + logs)
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { brandedEmailShell, DEFAULT_FROM, DEFAULT_REPLY_TO } from "./resend.ts";
+import { brandedEmailShell, DEFAULT_FROM, DEFAULT_REPLY_TO, SITE_URL, unsubscribeUrlFor } from "./resend.ts";
 
-export { brandedEmailShell, DEFAULT_FROM, DEFAULT_REPLY_TO };
+export { brandedEmailShell, DEFAULT_FROM, DEFAULT_REPLY_TO, SITE_URL, unsubscribeUrlFor };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -28,6 +28,10 @@ export interface SendInput {
   kind?: string;          // 'newsletter' | 'campaign' | 'transactional' | ...
   campaignId?: string;
   recipientUserId?: string;
+  /** Skip the unsubscribe check for true transactional emails (password reset, invoice). */
+  bypassUnsubscribeCheck?: boolean;
+  /** Per-recipient unsubscribe URL injected as List-Unsubscribe header. */
+  unsubscribeUrl?: string;
 }
 
 export interface SendResult {
@@ -70,6 +74,11 @@ async function sendViaResend(input: SendInput): Promise<SendResult> {
   const apiKey = Deno.env.get("RESEND_API_KEY");
   if (!apiKey) return { ok: false, provider: "resend", error: "RESEND_API_KEY missing" };
   try {
+    const headers: Record<string, string> = {};
+    if (input.unsubscribeUrl) {
+      headers["List-Unsubscribe"] = `<${input.unsubscribeUrl}>, <mailto:${DEFAULT_REPLY_TO}?subject=unsubscribe>`;
+      headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+    }
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
@@ -80,6 +89,7 @@ async function sendViaResend(input: SendInput): Promise<SendResult> {
         html: input.html,
         text: input.text,
         reply_to: input.reply_to ?? DEFAULT_REPLY_TO,
+        headers: Object.keys(headers).length ? headers : undefined,
       }),
     });
     const text = await res.text();
@@ -101,6 +111,11 @@ async function sendViaBrevo(input: SendInput): Promise<SendResult> {
     ? { name: m[1].trim() || "MIPROJET", email: m[2].trim() }
     : { name: "MIPROJET", email: fromRaw };
   try {
+    const headers: Record<string, string> = {};
+    if (input.unsubscribeUrl) {
+      headers["List-Unsubscribe"] = `<${input.unsubscribeUrl}>, <mailto:${DEFAULT_REPLY_TO}?subject=unsubscribe>`;
+      headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+    }
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: { "Content-Type": "application/json", "api-key": apiKey, accept: "application/json" },
@@ -111,6 +126,7 @@ async function sendViaBrevo(input: SendInput): Promise<SendResult> {
         htmlContent: input.html,
         textContent: input.text,
         replyTo: { email: input.reply_to ?? DEFAULT_REPLY_TO },
+        headers: Object.keys(headers).length ? headers : undefined,
       }),
     });
     const text = await res.text();
@@ -124,6 +140,20 @@ async function sendViaBrevo(input: SendInput): Promise<SendResult> {
 
 /** Smart send with auto-failover & logging. */
 export async function sendMail(input: SendInput): Promise<SendResult> {
+  // Honor the global unsubscribe list (unless this is truly transactional).
+  if (!input.bypassUnsubscribeCheck) {
+    try {
+      const { data: blocked } = await supabaseAdmin
+        .from("email_unsubscribes")
+        .select("email").ilike("email", input.to).maybeSingle();
+      if (blocked) {
+        const result: SendResult = { ok: false, error: "Recipient is unsubscribed" };
+        await logEmail(input, result);
+        return result;
+      }
+    } catch (_) { /* fail open */ }
+  }
+
   const preferred = await pickProvider();
   const order: ("brevo" | "resend")[] = preferred === "resend"
     ? ["resend", "brevo"]

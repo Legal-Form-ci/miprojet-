@@ -1,4 +1,4 @@
-import { sendMail, brandedEmailShell, corsHeaders } from "../_shared/mailer.ts";
+import { sendMail, brandedEmailShell, corsHeaders, unsubscribeUrlFor } from "../_shared/mailer.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
@@ -13,8 +13,9 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, source } = await req.json();
+    const { email, source, full_name } = await req.json();
     const e = (email ?? "").toString().toLowerCase().trim();
+    const fullName = (full_name ?? "").toString().trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
       return new Response(JSON.stringify({ ok: false, error: "Invalid email" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -27,13 +28,17 @@ Deno.serve(async (req) => {
       { auth: { persistSession: false, autoRefreshToken: false } },
     );
 
-    // Auto-confirm subscribe (idempotent).
-    await supabase
+    // Auto-confirm subscribe (idempotent) and capture name.
+    const { data: upserted } = await supabase
       .from("newsletter_subscribers")
       .upsert(
-        { email: e, source: source ?? "footer", is_active: true, unsubscribed_at: null },
+        { email: e, source: source ?? "footer", is_active: true, unsubscribed_at: null, full_name: fullName || null },
         { onConflict: "email" },
-      );
+      )
+      .select("unsubscribe_token, full_name").maybeSingle();
+
+    const unsubUrl = unsubscribeUrlFor((upserted as any)?.unsubscribe_token);
+    const greetingName = (upserted as any)?.full_name || fullName;
 
     const inner = `
       <h1 style="color:#15803d;font-size:24px;margin:0 0 16px 0;">Bienvenue dans la communauté MIPROJET 🌍</h1>
@@ -51,6 +56,8 @@ Deno.serve(async (req) => {
       preheader: "Vos opportunités africaines, directement dans votre boîte mail.",
       ctaUrl: "https://ivoireprojet.com/subscription",
       ctaLabel: "Découvrir nos abonnements",
+      recipientName: greetingName,
+      unsubscribeUrl: unsubUrl,
     });
 
     const result = await sendMail({
@@ -58,6 +65,7 @@ Deno.serve(async (req) => {
       subject: "Bienvenue dans MIPROJET 🌍",
       html,
       kind: "newsletter_welcome",
+      unsubscribeUrl: unsubUrl,
     });
 
     return new Response(

@@ -372,6 +372,30 @@ export type Database = {
         }
         Relationships: []
       }
+      email_unsubscribes: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          reason: string | null
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          reason?: string | null
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          reason?: string | null
+          source?: string | null
+        }
+        Relationships: []
+      }
       faqs: {
         Row: {
           answer: string
@@ -953,11 +977,14 @@ export type Database = {
           category: string | null
           content: string
           created_at: string
+          email_segment: string | null
+          email_sent_at: string | null
           excerpt: string | null
           id: string
           image_url: string | null
           is_featured: boolean | null
           published_at: string | null
+          send_by_email: boolean
           short_slug: string | null
           status: string | null
           title: string
@@ -972,11 +999,14 @@ export type Database = {
           category?: string | null
           content: string
           created_at?: string
+          email_segment?: string | null
+          email_sent_at?: string | null
           excerpt?: string | null
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
           published_at?: string | null
+          send_by_email?: boolean
           short_slug?: string | null
           status?: string | null
           title: string
@@ -991,11 +1021,14 @@ export type Database = {
           category?: string | null
           content?: string
           created_at?: string
+          email_segment?: string | null
+          email_sent_at?: string | null
           excerpt?: string | null
           id?: string
           image_url?: string | null
           is_featured?: boolean | null
           published_at?: string | null
+          send_by_email?: boolean
           short_slug?: string | null
           status?: string | null
           title?: string
@@ -1009,28 +1042,34 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          full_name: string | null
           id: string
           is_active: boolean
           metadata: Json | null
           source: string | null
+          unsubscribe_token: string | null
           unsubscribed_at: string | null
         }
         Insert: {
           created_at?: string
           email: string
+          full_name?: string | null
           id?: string
           is_active?: boolean
           metadata?: Json | null
           source?: string | null
+          unsubscribe_token?: string | null
           unsubscribed_at?: string | null
         }
         Update: {
           created_at?: string
           email?: string
+          full_name?: string | null
           id?: string
           is_active?: boolean
           metadata?: Json | null
           source?: string | null
+          unsubscribe_token?: string | null
           unsubscribed_at?: string | null
         }
         Relationships: []
@@ -1086,6 +1125,8 @@ export type Database = {
           deadline: string | null
           description: string | null
           eligibility: string | null
+          email_segment: string | null
+          email_sent_at: string | null
           external_link: string | null
           id: string
           image_url: string | null
@@ -1095,6 +1136,7 @@ export type Database = {
           location: string | null
           opportunity_type: string | null
           published_at: string | null
+          send_by_email: boolean
           short_slug: string | null
           status: string | null
           title: string
@@ -1115,6 +1157,8 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           eligibility?: string | null
+          email_segment?: string | null
+          email_sent_at?: string | null
           external_link?: string | null
           id?: string
           image_url?: string | null
@@ -1124,6 +1168,7 @@ export type Database = {
           location?: string | null
           opportunity_type?: string | null
           published_at?: string | null
+          send_by_email?: boolean
           short_slug?: string | null
           status?: string | null
           title: string
@@ -1144,6 +1189,8 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           eligibility?: string | null
+          email_segment?: string | null
+          email_sent_at?: string | null
           external_link?: string | null
           id?: string
           image_url?: string | null
@@ -1153,6 +1200,7 @@ export type Database = {
           location?: string | null
           opportunity_type?: string | null
           published_at?: string | null
+          send_by_email?: boolean
           short_slug?: string | null
           status?: string | null
           title?: string
@@ -1332,6 +1380,7 @@ export type Database = {
           suspended_reason: string | null
           total_commissions: number | null
           total_referrals: number | null
+          unsubscribe_token: string | null
           updated_at: string
           user_type: string | null
           whatsapp: string | null
@@ -1357,6 +1406,7 @@ export type Database = {
           suspended_reason?: string | null
           total_commissions?: number | null
           total_referrals?: number | null
+          unsubscribe_token?: string | null
           updated_at?: string
           user_type?: string | null
           whatsapp?: string | null
@@ -1382,6 +1432,7 @@ export type Database = {
           suspended_reason?: string | null
           total_commissions?: number | null
           total_referrals?: number | null
+          unsubscribe_token?: string | null
           updated_at?: string
           user_type?: string | null
           whatsapp?: string | null
@@ -1889,6 +1940,7 @@ export type Database = {
         Args: { _provider: string }
         Returns: number
       }
+      is_email_unsubscribed: { Args: { _email: string }; Returns: boolean }
       pick_email_provider: { Args: never; Returns: string }
       user_profile_type: { Args: { _user_id: string }; Returns: string }
     }
