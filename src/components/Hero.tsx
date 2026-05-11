@@ -23,7 +23,8 @@ type Slide = {
 
 export const Hero = () => {
   const { user } = useAuth();
-  const { isPremium } = useSubscription();
+  const { hasActiveSubscription } = useSubscription();
+  const isPremium = hasActiveSubscription;
   const [slides, setSlides] = useState<Slide[]>([]);
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
