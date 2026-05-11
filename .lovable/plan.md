@@ -1,152 +1,103 @@
-# Plan — Refonte design MIPROJET + Système mailing professionnel complet
+# Plan — Refonte MIPROJET inspirée Belife + sécurité + mailing pro
 
-Demande très large couvrant 4 chantiers majeurs. Je propose une exécution par phases pour livrer du concret rapidement, puis itérer. Chaque phase est livrable indépendamment.
-
----
-
-## Phase 1 — Fondations design & UI (priorité immédiate)
-
-**Objectif** : corriger la refonte précédente (débordements, alignements, responsive, charte non cohérente avec le logo MiProjet vert/bleu).
-
-- Reprendre `src/index.css` : tokens cohérents avec le logo MiProjet (bleu navy + vert + accents), oklch, ombres, gradients premium
-- Auditer et corriger : `Hero`, `Navigation`, `Footer`, `Features`, `FundingTypes`, `HowItWorks`, `StatsSection`, `TestimonialsSection`, `CallToAction`
-- Grille responsive cohérente (containers, paddings, breakpoints sm/md/lg/xl/2xl)
-- Hiérarchie typographique pro (display + body, échelle modulaire)
-- Newsletter footer : ajouter champ "Nom complet" en plus de l'email
-- Vérification visuelle mobile / tablette / desktop
-
-## Phase 2 — Refonte unifiée Email Marketing (admin)
-
-**Objectif** : fusionner `AdminEmailMarketing` + `EmailTemplateManager` en un seul espace centralisé.
-
-Nouveau composant `AdminMailingHub` avec onglets :
-1. **Tableau de bord** (monitoring temps réel — voir Phase 3)
-2. **Campagnes** (créer / éditer / envoyer / planifier)
-3. **Templates** (bienvenue, paiement, opportunité, etc. — éditables)
-4. **Automatisations** (mapping événement → template + segment)
-5. **Segments & Abonnés** (newsletter + désabonnés)
-6. **Logs & Événements** (livrés, ouverts, cliqués, bounces)
-
-Le menu admin ne montre plus qu'**une seule entrée** "Email Marketing".
-
-## Phase 3 — Monitoring temps réel mailing
-
-Nouveau dashboard `AdminEmailMonitoring` :
-- Quotas du jour Brevo (300) / Resend (100) avec barres de progression
-- Total envoyés / livrés / ouverts / cliqués / bounces / plaintes (24h, 7j, 30j) — depuis `email_logs` + `email_events`
-- Taux de délivrabilité, ouverture, clic
-- Échecs récents avec détail erreur + bouton "Renvoyer"
-- Statut campagnes en cours
-- Stats par segment (newsletter, premium, elite, all_users)
-- Désabonnements récents
-- Provider actif / failover
-
-Refresh auto via React Query (polling 15s).
-
-## Phase 4 — Éditeur visuel WYSIWYG avancé pour campagnes
-
-Remplacer l'éditeur HTML brut actuel par un éditeur visuel (basé sur **TipTap** déjà compatible React) :
-- Génération IA initiale (`ai-generate-email`) → résultat injecté dans l'éditeur visuel
-- Toolbar : titres, gras/italique, liens, listes, alignement, couleurs
-- **Insertion d'images** par upload local (JPG/PNG/WEBP) → bucket Supabase Storage `email-assets` (public)
-- **Insertion de boutons CTA** (composant inséré dans le HTML)
-- **Insertion de documents** (PDF/Word/Excel/PPTX/CSV) → upload bucket `email-attachments`
-- **Position image** (dropdown) : sous le logo / avant texte / milieu / après texte / pied
-- **Position document** (dropdown) : bouton haut / milieu / bas / pièce jointe
-- Preview live (desktop + mobile)
-- Logo MiProjet **toujours injecté en en-tête** (Base64 fallback)
-
-Composant : `src/components/admin/EmailVisualEditor.tsx` + bucket storage migration.
-
-## Phase 5 — Templates emails pro (style Scoly)
-
-Refonte du `brandedEmailShell` dans `supabase/functions/_shared/resend.ts` :
-- Header : bandeau gradient bleu navy MiProjet + logo blanc centré (Base64)
-- Tagline "Entrepreneuriat jeune"
-- Salutation personnalisée `Bonjour {first_name} {last_name},`
-- Corps : typographie pro, espaces généreux, CTA bouton large
-- Footer : liens utiles + **lien désabonnement obligatoire** (token unique)
-- Compatible Outlook / Gmail / Apple Mail (tables HTML)
-- Headers propres (List-Unsubscribe, Reply-To)
-
-Templates refondus : `welcome-newsletter`, `welcome-subscription`, `notify-new-opportunity`, + nouveaux : `payment-confirmation`, `subscription-expiring`, `subscription-renewed`, `password-reset`.
-
-## Phase 6 — Désabonnement réel
-
-- Migration : table `email_unsubscribes (email, token, reason, created_at)` + colonne `unsubscribe_token` sur `newsletter_subscribers`
-- Edge function publique `unsubscribe` (GET avec token) → marque désabonné + page de confirmation
-- Tous les envois vérifient la liste de désabonnement avant d'envoyer
-- Header `List-Unsubscribe` automatique
-- Page `/unsubscribe?token=...` côté frontend
-
-## Phase 7 — Actualités & Opportunités → envoi auto
-
-Dans `AdminNewsManager` et `AdminOpportunitiesManager` :
-- Checkbox "Envoyer par email"
-- Select "Segment destinataires" (newsletter / premium / elite / all_users)
-- Upload image de couverture (déjà partiellement existant — vérifier)
-- À la publication : déclencher `send-campaign` avec template visuel reprenant cover + titre + extrait + CTA "Lire la suite"
-
-## Phase 8 — Automatisations événementielles
-
-Vérifier / créer les triggers :
-- Inscription newsletter → `welcome-newsletter` ✅ déjà OK
-- Création compte → email de confirmation
-- Paiement réussi (webhook FedaPay/Wave/Money Fusion) → `welcome-subscription` ✅ + `payment-confirmation`
-- Nouvelle opportunité publiée → `notify-new-opportunity` (avec checkbox Phase 7)
-- Cron quotidien : abonnements expirant dans 7j → `subscription-expiring`
-- Cron quotidien : abonnements renouvelés → `subscription-renewed`
-- Reset mot de passe (Supabase Auth) → template custom
-
-## Phase 9 — Délivrabilité & anti-spam
-
-- Optimisation HTML : tables, inline CSS, poids < 100KB
-- Headers : `List-Unsubscribe`, `List-Unsubscribe-Post`, `Reply-To`, `Message-ID`
-- Vérifier SPF/DKIM/DMARC (instructions OVH/Brevo/Resend)
-- Texte alternatif (text/plain) auto-généré depuis HTML
-- Tracking pixel optionnel
-- Warm-up : limiter envois batch à 50/h sur nouveau domaine
+Travail très large : je propose de livrer en **vagues** courtes pour que vous voyiez du concret rapidement, dans l'ordre exact de votre demande (refonte EN PRIORITÉ).
 
 ---
 
-## Détails techniques
+## 🎨 VAGUE 1 — Refonte globale style Belife (PRIORITÉ ABSOLUE)
+
+### 1.1 Charte graphique stricte sur le logo MiProjet
+Couleurs extraites du logo :
+- **Bleu MiProjet** `#1B6FB5` (le "M" et "PROJET")
+- **Vert MiProjet** `#5BA84A` (le tiret + "Entrepreneuriat jeune")
+- **Bleu foncé navy** `#0F4C81` pour profondeur
+- Blanc / gris très clair pour fond
+- Refonte complète de `src/index.css` (tokens HSL/oklch cohérents, gradients bleu→vert, ombres douces)
+
+### 1.2 Navigation style Belife (voir capture jointe)
+- **Top bar fine** orange/accent : "Particuliers · Professionnels · Investisseurs" + "Agences & contact" + icônes sociales à droite
+- **Barre principale blanche aérée** : Logo gauche · Menus centrés (À propos, Nos offres, Opportunités, Actualités, Contact) avec dropdowns au survol · à droite : recherche 🔍 + **bouton "MiProjet+" détaché** (pill arrondi gradient vert→bleu) + icône téléphone
+- Menus dropdowns larges (mega-menu) avec colonnes thématiques
+- Mobile : drawer plein écran clean
+- Sticky avec rétrécissement au scroll
+
+### 1.3 Hero carousel automatique
+- Hero plein écran avec **carousel auto-défilant** (5s) des Actualités + Opportunités
+- Filtrage selon abonnement (public / Premium / Elite)
+- Flèches gauche/droite manuelles + dots indicateurs
+- Chaque slide : image cover + badge type (Actualité / Opportunité) + titre + extrait + CTA "Découvrir"
+- Animations fluides (framer-motion)
+
+### 1.4 Refonte de TOUTES les pages publiques
+Sections home : Hero carousel → Stats → Services → Comment ça marche → Types de financement → Projets en vedette → Témoignages → Actualités → CTA → Footer
+Pages refondues : Accueil, About, Services, Projects, Opportunities, News, Blog, Contact, FAQ, Documents, Subscription, Auth, Dashboard, MiProjet+, Admin (toutes), formulaires (StructuringForm, EnterpriseForm, Submit, Evaluation)
+
+### 1.5 Responsive parfait
+Audit mobile (375px), tablette (768px), desktop (1280px+) sur chaque page. Containers, paddings, breakpoints sm/md/lg/xl/2xl cohérents. Suppression de tout débordement horizontal.
+
+---
+
+## 🔐 VAGUE 2 — Sécurité
+
+- **Leaked Password Protection** : action manuelle dashboard Supabase (je documenterai dans un encart admin)
+- **opportunities.contact_email/phone** : déjà restreint aux `authenticated` (vérification + test)
+- **email_events INSERT** : ajouter policy explicite "service_role only" pour bloquer tout client
+- **Page admin "Sécurité"** : nouvelle entrée avec checklist (open / fixed / re-test), lien vers fix, statut live depuis `security--get_scan_results`
+
+## 📧 VAGUE 3 — Mailing pro
+
+### 3.1 Monitoring temps réel
+Page `AdminEmailMonitoring` : quotas Brevo/Resend, taux ouverture/clic/bounce, échecs avec bouton "renvoyer", stats par segment, polling 15s.
+
+### 3.2 Webhooks dashboard
+Page dédiée events bruts Resend (+ Brevo si dispo) avec correspondance `email_logs`.
+
+### 3.3 Éditeur WYSIWYG TipTap
+Remplace HTML brut. Toolbar complète + upload images bucket `email-assets` + insertion CTA + preview desktop/mobile + génération IA initiale.
+
+### 3.4 Automatisations cron (pg_cron + pg_net)
+- Cron quotidien : abonnements expirant 7j → email rappel
+- Cron quotidien : nouvelles opportunités du jour groupées par segment
+- Cron horaire : retry échecs (max 3 tentatives, backoff)
+- Newsletter planifiée (date/heure choisie dans hub admin)
+
+---
+
+## 📋 Détails techniques
 
 ```text
-Nouveaux fichiers principaux:
-  src/components/admin/AdminMailingHub.tsx            (hub unifié)
-  src/components/admin/EmailMonitoringDashboard.tsx   (Phase 3)
-  src/components/admin/EmailVisualEditor.tsx          (Phase 4 — TipTap)
-  src/components/admin/EmailAutomationsManager.tsx    (Phase 8)
-  src/pages/Unsubscribe.tsx                           (Phase 6)
-  supabase/functions/unsubscribe/index.ts             (Phase 6)
-  supabase/functions/payment-confirmation/index.ts    (Phase 8)
-  supabase/functions/subscription-expiring/index.ts   (Phase 8)
-  supabase/functions/_shared/branded-email.ts         (refonte shell)
+Fichiers refondus (Vague 1 — non exhaustif) :
+  src/index.css                            ← tokens MiProjet stricts
+  src/components/Navigation.tsx            ← style Belife (top bar + menu aéré + MP+ détaché)
+  src/components/Hero.tsx                  ← carousel actu/oppo
+  src/components/HeroCarousel.tsx          ← nouveau
+  src/components/Footer.tsx                ← refonte
+  src/components/Features|Services|...     ← refonte
+  src/pages/*                              ← audit + ajustements
+  src/components/admin/*                   ← refonte UI
+  src/pages/miprojet-plus/*                ← refonte UI
 
-Migrations:
-  - bucket storage 'email-assets' (public) + 'email-attachments' (privé)
-  - table email_unsubscribes
-  - colonne unsubscribe_token sur newsletter_subscribers + profiles
-  - colonnes send_by_email + email_segment sur news + opportunities
-  - cron jobs (pg_cron) pour expiration / renewal
+Vague 2 :
+  supabase/migrations/...                  ← email_events policy
+  src/components/admin/AdminSecurityCheck.tsx ← nouveau
 
-Dépendances à ajouter:
-  - @tiptap/react @tiptap/starter-kit @tiptap/extension-image @tiptap/extension-link
+Vague 3 :
+  src/components/admin/EmailMonitoringDashboard.tsx
+  src/components/admin/EmailWebhooksDashboard.tsx
+  src/components/admin/EmailVisualEditor.tsx (TipTap)
+  supabase/migrations/...                  ← cron jobs + bucket email-assets
+  bun add @tiptap/react @tiptap/starter-kit @tiptap/extension-image @tiptap/extension-link
 ```
 
 ---
 
-## Ordre d'exécution proposé
+## 🚀 Ordre d'exécution
 
-Je propose de livrer dans cet ordre pour maximiser l'impact visible :
+1. **Vague 1.1 + 1.2 + 1.3** (tokens + nav Belife + hero carousel) — livrable visible immédiat
+2. **Vague 1.4 + 1.5** (refonte pages restantes + responsive)
+3. **Vague 2** (sécurité)
+4. **Vague 3.1 + 3.2** (monitoring + webhooks)
+5. **Vague 3.3** (WYSIWYG TipTap)
+6. **Vague 3.4** (crons)
 
-1. **Phase 1** (fondations design — fix immédiat de ce que vous voyez) ← **commencer ici**
-2. **Phase 5 + 6** (templates emails pro + désabonnement)
-3. **Phase 2 + 3** (hub admin unifié + monitoring)
-4. **Phase 4** (éditeur visuel + uploads)
-5. **Phase 7 + 8** (envoi auto news/opportunités + automatisations cron)
-6. **Phase 9** (durcissement délivrabilité)
-
-C'est environ **3 à 5 itérations** vu l'ampleur. Chaque phase reste utilisable seule.
-
-**Confirmez-vous cet ordre, ou préférez-vous prioriser autrement (ex : monitoring + éditeur visuel d'abord) ?** Une fois validé, je commence immédiatement la Phase 1.
+Je commence **immédiatement par la Vague 1.1 → 1.3** (impact visuel maximal). Confirmez ce plan et j'attaque.
