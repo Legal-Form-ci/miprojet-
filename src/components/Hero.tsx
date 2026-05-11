@@ -18,7 +18,6 @@ type Slide = {
   image: string;
   href: string;
   badge: string;
-  visibility?: string;
 };
 
 export const Hero = () => {
