@@ -1,160 +1,287 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, TrendingUp, Users, Shield, CheckCircle, Newspaper } from "lucide-react";
-import { useLanguage } from "@/i18n/LanguageContext";
+import { ArrowRight, ChevronLeft, ChevronRight, Newspaper, Target, Sparkles, TrendingUp, Users, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import heroImage from "@/assets/hero-collaboration.jpg";
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { cn } from "@/lib/utils";
+import heroFallback from "@/assets/hero-collaboration.jpg";
 
-interface NewsItem {
+type Slide = {
   id: string;
+  type: "news" | "opportunity";
   title: string;
-}
+  excerpt: string;
+  image: string;
+  href: string;
+  badge: string;
+  visibility?: string;
+};
 
 export const Hero = () => {
-  const { t } = useLanguage();
-  const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
+  const { user } = useAuth();
+  const { isPremium } = useSubscription();
+  const [slides, setSlides] = useState<Slide[]>([]);
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(
+    { loop: true, align: "start", duration: 28 },
+    [Autoplay({ delay: 5500, stopOnInteraction: false, stopOnMouseEnter: true })]
+  );
+  const [selectedIdx, setSelectedIdx] = useState(0);
+
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
   useEffect(() => {
-    const fetchNews = async () => {
-      const { data } = await supabase
-        .from("news")
-        .select("id, title")
-        .eq("status", "published")
-        .order("published_at", { ascending: false })
-        .limit(3);
-      if (data) setLatestNews(data);
+    if (!emblaApi) return;
+    const onSelect = () => setSelectedIdx(emblaApi.selectedScrollSnap());
+    onSelect();
+    emblaApi.on("select", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
     };
-    fetchNews();
-  }, []);
+  }, [emblaApi]);
 
-  const highlights = [
-    t('hero.highlight1'),
-    t('hero.highlight2'),
-    t('hero.highlight3'),
-    t('hero.highlight4'),
+  useEffect(() => {
+    const load = async () => {
+      const [{ data: news }, { data: opps }] = await Promise.all([
+        supabase
+          .from("news")
+          .select("id, title, excerpt, cover_image_url, slug, short_slug")
+          .eq("status", "published")
+          .order("published_at", { ascending: false })
+          .limit(4),
+        supabase
+          .from("opportunities")
+          .select("id, title, description, cover_image_url, slug, short_slug, visibility")
+          .eq("status", "published")
+          .order("created_at", { ascending: false })
+          .limit(8),
+      ]);
+
+      const newsSlides: Slide[] = (news || []).map((n: any) => ({
+        id: `n-${n.id}`,
+        type: "news",
+        title: n.title,
+        excerpt: n.excerpt || "Découvrez les dernières actualités MIPROJET.",
+        image: n.cover_image_url || heroFallback,
+        href: `/news/${n.short_slug || n.slug || n.id}`,
+        badge: "Actualité",
+      }));
+
+      // Visibility filter
+      const oppFiltered = (opps || []).filter((o: any) => {
+        const v = (o.visibility || "public").toLowerCase();
+        if (v === "public") return true;
+        if (!user) return false;
+        if (v === "premium" || v === "elite") return isPremium;
+        return true;
+      });
+
+      const oppSlides: Slide[] = oppFiltered.slice(0, 4).map((o: any) => ({
+        id: `o-${o.id}`,
+        type: "opportunity",
+        title: o.title,
+        excerpt: o.description?.slice(0, 180) || "Nouvelle opportunité de financement disponible.",
+        image: o.cover_image_url || heroFallback,
+        href: `/opportunities/${o.short_slug || o.slug || o.id}`,
+        badge: o.visibility && o.visibility !== "public" ? `Opportunité ${o.visibility}` : "Opportunité",
+        visibility: o.visibility,
+      }));
+
+      // Interleave for variety
+      const merged: Slide[] = [];
+      const max = Math.max(newsSlides.length, oppSlides.length);
+      for (let i = 0; i < max; i++) {
+        if (newsSlides[i]) merged.push(newsSlides[i]);
+        if (oppSlides[i]) merged.push(oppSlides[i]);
+      }
+
+      // Always provide at least one fallback hero card
+      if (merged.length === 0) {
+        merged.push({
+          id: "fallback-1",
+          type: "news",
+          title: "Structurez, financez et incubez vos projets en Afrique",
+          excerpt:
+            "MIPROJET accompagne les entrepreneurs et investisseurs panafricains avec des outils professionnels.",
+          image: heroFallback,
+          href: "/projects",
+          badge: "MIPROJET",
+        });
+      }
+
+      setSlides(merged);
+    };
+    load();
+  }, [user, isPremium]);
+
+  const stats = [
+    { icon: TrendingUp, value: "105+", label: "Projets structurés" },
+    { icon: Users, value: "65+", label: "Membres actifs" },
+    { icon: Shield, value: "5", label: "Pays couverts" },
   ];
 
   return (
-    <section className="relative min-h-[88vh] lg:min-h-screen flex items-center pt-20 pb-12 overflow-hidden bg-hero">
+    <section
+      className="relative pt-[108px] md:pt-[132px] pb-12 overflow-hidden"
+      style={{ background: "var(--gradient-hero)" }}
+    >
       {/* Decorative blobs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full bg-accent/15 blur-3xl animate-blob" />
-        <div className="absolute top-1/3 -right-40 w-[520px] h-[520px] rounded-full bg-primary-glow/25 blur-3xl animate-blob" style={{ animationDelay: '4s' }} />
-        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(hsl(0 0% 100%) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+        <div className="absolute -top-32 -left-32 w-[480px] h-[480px] rounded-full bg-secondary/20 blur-3xl animate-blob" />
+        <div
+          className="absolute top-1/3 -right-40 w-[520px] h-[520px] rounded-full bg-primary-glow/30 blur-3xl animate-blob"
+          style={{ animationDelay: "4s" }}
+        />
       </div>
 
       <div className="container-luxe relative z-10">
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center min-w-0">
-          {/* Left Content */}
-          <div className="lg:col-span-7 space-y-6 lg:space-y-8 text-primary-foreground text-left reveal-up">
-            {/* News Ticker */}
-            {latestNews.length > 0 && (
-              <div className="inline-flex flex-col gap-1.5 max-w-full bg-white/[0.06] backdrop-blur-md rounded-2xl p-4 border border-white/15 overflow-hidden shadow-luxe">
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 animate-ping"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-accent"></span>
-                  </span>
-                  <Newspaper className="h-3.5 w-3.5 text-accent flex-shrink-0" />
-                  <span className="text-[11px] font-bold text-accent uppercase tracking-[0.18em]">Actualités en direct</span>
-                </div>
-                <div className="space-y-1">
-                  {latestNews.map((n) => (
-                    <Link key={n.id} to={`/news/${n.id}`} className="block text-sm text-white/90 hover:text-accent transition-colors truncate max-w-full">
-                      → {n.title}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Title */}
-            <div className="space-y-4 min-w-0">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold text-white/90 uppercase tracking-wider backdrop-blur-md">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" /> Plateforme Panafricaine · Multi-utilisateur
-              </span>
-              <h1 className="text-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white">
-                Structurez,<br />
-                <span className="gold-text">financez</span> et incubez
-              </h1>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-medium text-white/80 leading-snug max-w-2xl">
-                vos projets en Afrique — accompagnement professionnel pour porteurs, investisseurs privés et bailleurs institutionnels.
-              </h2>
-            </div>
-
-            <p className="text-base lg:text-lg text-white/75 leading-relaxed max-w-2xl">
-              {t('hero.description')}
+        <div className="grid lg:grid-cols-12 gap-8 items-center">
+          {/* Left intro */}
+          <div className="lg:col-span-5 text-white space-y-5 reveal-up">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/15 text-[11px] font-bold uppercase tracking-[0.18em] backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5 text-secondary-glow" /> Plateforme panafricaine
+            </span>
+            <h1 className="text-display text-4xl sm:text-5xl lg:text-[3.5rem] leading-[1.05]">
+              Structurez,{" "}
+              <span
+                className="bg-clip-text text-transparent"
+                style={{ backgroundImage: "var(--gradient-secondary)" }}
+              >
+                financez
+              </span>{" "}
+              et incubez vos projets
+            </h1>
+            <p className="text-base sm:text-lg text-white/85 leading-relaxed max-w-xl">
+              MIPROJET accompagne porteurs, investisseurs et bailleurs en Afrique avec des outils
+              professionnels — structuration, financement et incubation.
             </p>
 
-            {/* Highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-w-2xl">
-              {highlights.map((item, index) => (
-                <div key={index} className="flex items-center gap-2.5 text-white/90">
-                  <span className="grid place-items-center h-6 w-6 rounded-full bg-accent/20 ring-1 ring-accent/40 flex-shrink-0">
-                    <CheckCircle className="h-3.5 w-3.5 text-accent" />
-                  </span>
-                  <span className="text-sm sm:text-base">{item}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-6 py-5 border-t border-b border-white/15">
-              {[
-                { icon: TrendingUp, value: '105+', label: t('hero.projectsStructured') },
-                { icon: Users, value: '65+', label: t('hero.activeMembers') },
-                { icon: Shield, value: '5', label: t('hero.countriesCovered') },
-              ].map((s, i) => (
-                <div key={i} className="text-left">
-                  <div className="flex items-center gap-2 mb-1">
-                    <s.icon className="h-4 w-4 sm:h-5 sm:w-5 text-accent" />
-                    <span className="text-display text-2xl sm:text-3xl md:text-4xl text-white">{s.value}</span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-white/70">{s.label}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 min-w-0 pt-2">
+            <div className="flex flex-col sm:flex-row gap-3 pt-1">
               <Link to="/submit-project" className="w-full sm:w-auto">
-                <Button size="lg" className="group w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-luxe relative overflow-hidden">
-                  <span className="relative z-10 truncate">{t('hero.submitProject')}</span>
-                  <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0 relative z-10 transition-transform group-hover:translate-x-1" />
-                  <span className="absolute inset-0 animate-shimmer opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Button
+                  size="lg"
+                  className="w-full font-semibold text-white shadow-luxe hover:shadow-glow hover:scale-[1.02] transition-all"
+                  style={{ background: "var(--gradient-brand)" }}
+                >
+                  Soumettre un projet
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
               <Link to="/projects" className="w-full sm:w-auto">
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="w-full bg-white/5 border-white/25 text-white hover:bg-white/10 hover:border-white/40 backdrop-blur-md"
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="w-full bg-white/5 border-white/30 text-white hover:bg-white/15 hover:border-white/50 backdrop-blur-md"
                 >
-                  {t('hero.discoverProjects')}
+                  Découvrir les projets
                 </Button>
               </Link>
             </div>
+
+            <div className="grid grid-cols-3 gap-3 sm:gap-5 pt-5 border-t border-white/15">
+              {stats.map((s, i) => (
+                <div key={i}>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <s.icon className="h-4 w-4 text-secondary-glow" />
+                    <span className="text-display text-2xl sm:text-3xl">{s.value}</span>
+                  </div>
+                  <p className="text-[11px] sm:text-xs text-white/70 leading-tight">{s.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Right Image */}
-          <div className="lg:col-span-5 relative hidden lg:flex justify-center reveal-up" style={{ animationDelay: '0.2s' }}>
-            <div className="relative rounded-3xl overflow-hidden shadow-luxe ring-1 ring-white/10">
-              <img
-                src={heroImage}
-                alt="Entrepreneurs africains collaborant sur MIPROJET"
-                className="w-full h-auto object-cover transition-transform duration-700 hover:scale-105"
-                loading="eager"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/40 via-transparent to-transparent" />
-            </div>
-            <div className="absolute -bottom-6 -left-6 bg-card p-4 rounded-2xl shadow-luxe ring-1 ring-border animate-float">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{t('hero.qualityLabel')}</p>
-              <p className="text-display text-3xl text-primary mt-1">Score A</p>
-            </div>
-            <div className="absolute -top-6 -right-6 bg-card p-4 rounded-2xl shadow-luxe ring-1 ring-border animate-float" style={{ animationDelay: '1.5s' }}>
-              <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">{t('hero.projectsAccompanied')}</p>
-              <p className="text-display text-2xl gold-text mt-1">1,2 Mds FCFA</p>
+          {/* Right carousel */}
+          <div className="lg:col-span-7 reveal-up" style={{ animationDelay: "0.15s" }}>
+            <div className="relative rounded-3xl overflow-hidden shadow-luxe ring-1 ring-white/15 bg-black/20 backdrop-blur-sm">
+              <div className="overflow-hidden" ref={emblaRef}>
+                <div className="flex">
+                  {slides.map((s) => (
+                    <div key={s.id} className="flex-[0_0_100%] min-w-0 relative">
+                      <Link to={s.href} className="block group/slide">
+                        <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden">
+                          <img
+                            src={s.image}
+                            alt={s.title}
+                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-[8s] ease-out group-hover/slide:scale-105"
+                            loading="eager"
+                            onError={(e) => ((e.currentTarget as HTMLImageElement).src = heroFallback)}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+
+                          <div className="absolute top-4 left-4">
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-white shadow-md",
+                                s.type === "news" ? "bg-primary" : "bg-secondary"
+                              )}
+                            >
+                              {s.type === "news" ? (
+                                <Newspaper className="h-3.5 w-3.5" />
+                              ) : (
+                                <Target className="h-3.5 w-3.5" />
+                              )}
+                              {s.badge}
+                            </span>
+                          </div>
+
+                          <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7 text-white">
+                            <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold leading-tight line-clamp-2 mb-2 drop-shadow-lg">
+                              {s.title}
+                            </h3>
+                            <p className="text-sm sm:text-base text-white/85 line-clamp-2 mb-4 max-w-2xl">
+                              {s.excerpt}
+                            </p>
+                            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-secondary-glow group-hover/slide:gap-2.5 transition-all">
+                              Découvrir <ArrowRight className="h-4 w-4" />
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Arrows */}
+              {slides.length > 1 && (
+                <>
+                  <button
+                    onClick={scrollPrev}
+                    aria-label="Précédent"
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-11 sm:w-11 grid place-items-center rounded-full bg-white/90 hover:bg-white text-primary shadow-lg backdrop-blur-md transition-all hover:scale-110"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={scrollNext}
+                    aria-label="Suivant"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-11 sm:w-11 grid place-items-center rounded-full bg-white/90 hover:bg-white text-primary shadow-lg backdrop-blur-md transition-all hover:scale-110"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+
+                  {/* Dots */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+                    {slides.map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => emblaApi?.scrollTo(i)}
+                        aria-label={`Aller à la diapositive ${i + 1}`}
+                        className={cn(
+                          "h-1.5 rounded-full transition-all",
+                          i === selectedIdx ? "w-6 bg-white" : "w-1.5 bg-white/50 hover:bg-white/80"
+                        )}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
