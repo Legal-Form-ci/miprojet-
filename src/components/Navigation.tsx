@@ -153,7 +153,7 @@ export const Navigation = () => {
                   <NavigationMenuItem>
                     <Link
                       to="/contact"
-                      className="text-[13.5px] font-semibold px-3.5 py-2 hover:text-primary transition-colors"
+                      className="text-[13.5px] font-semibold px-3.5 py-2 hover:text-primary transition-colors whitespace-nowrap"
                     >
                       Contact
                     </Link>
