@@ -51,13 +51,13 @@ export const Hero = () => {
       const [{ data: news }, { data: opps }] = await Promise.all([
         supabase
           .from("news")
-          .select("id, title, excerpt, cover_image_url, slug, short_slug")
+          .select("id, title, excerpt, image_url, short_slug")
           .eq("status", "published")
           .order("published_at", { ascending: false })
           .limit(4),
         supabase
           .from("opportunities")
-          .select("id, title, description, cover_image_url, slug, short_slug, visibility")
+          .select("id, title, description, image_url, short_slug, is_premium")
           .eq("status", "published")
           .order("created_at", { ascending: false })
           .limit(8),
@@ -68,18 +68,15 @@ export const Hero = () => {
         type: "news",
         title: n.title,
         excerpt: n.excerpt || "Découvrez les dernières actualités MIPROJET.",
-        image: n.cover_image_url || heroFallback,
-        href: `/news/${n.short_slug || n.slug || n.id}`,
+        image: n.image_url || heroFallback,
+        href: `/news/${n.short_slug || n.id}`,
         badge: "Actualité",
       }));
 
-      // Visibility filter
+      // Visibility filter (premium-only opportunities require active subscription)
       const oppFiltered = (opps || []).filter((o: any) => {
-        const v = (o.visibility || "public").toLowerCase();
-        if (v === "public") return true;
-        if (!user) return false;
-        if (v === "premium" || v === "elite") return isPremium;
-        return true;
+        if (!o.is_premium) return true;
+        return !!user && isPremium;
       });
 
       const oppSlides: Slide[] = oppFiltered.slice(0, 4).map((o: any) => ({
@@ -87,10 +84,9 @@ export const Hero = () => {
         type: "opportunity",
         title: o.title,
         excerpt: o.description?.slice(0, 180) || "Nouvelle opportunité de financement disponible.",
-        image: o.cover_image_url || heroFallback,
-        href: `/opportunities/${o.short_slug || o.slug || o.id}`,
-        badge: o.visibility && o.visibility !== "public" ? `Opportunité ${o.visibility}` : "Opportunité",
-        visibility: o.visibility,
+        image: o.image_url || heroFallback,
+        href: `/opportunities/${o.short_slug || o.id}`,
+        badge: o.is_premium ? "Opportunité Premium" : "Opportunité",
       }));
 
       // Interleave for variety
