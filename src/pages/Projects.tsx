@@ -162,7 +162,7 @@ const Projects = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 pt-20 sm:pt-24 pb-12 sm:pb-16">
+      <main className="container mx-auto px-4 pt-28 md:pt-32 sm:pt-28 md:pt-32 pb-12 sm:pb-16">
         {/* Header */}
         <header className="mb-6 sm:mb-8">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">{t('projects.title')}</h1>

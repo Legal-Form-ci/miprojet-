@@ -14,7 +14,7 @@ const Privacy = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-16">
+      <main className="container mx-auto px-4 pt-28 md:pt-32 pb-16">
         <h1 className="text-3xl font-bold mb-4">Politique de confidentialité</h1>
         <p className="text-muted-foreground">Cette page détaille la collecte et l'utilisation des données (bientôt).</p>
       </main>

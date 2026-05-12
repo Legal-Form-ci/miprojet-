@@ -24,7 +24,7 @@ const IncubationProgram = () => {
       <Navigation />
 
       {/* Hero */}
-      <section className="relative pt-24 pb-16 bg-gradient-to-br from-primary/10 via-background to-accent/10 overflow-hidden">
+      <section className="relative pt-28 md:pt-32 pb-16 bg-gradient-to-br from-primary/10 via-background to-accent/10 overflow-hidden">
         <div className="container mx-auto px-4 text-center">
           <Badge className="mb-4 text-sm px-4 py-1" variant="secondary">🚀 Entrepreneuriat & Innovation</Badge>
           <h1 className="text-3xl sm:text-5xl font-bold mb-4 text-foreground">

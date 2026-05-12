@@ -137,7 +137,7 @@ const OpportunityDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="container mx-auto px-4 pt-24 pb-16 text-center">
+        <main className="container mx-auto px-4 pt-28 md:pt-32 pb-16 text-center">
           <div className="max-w-md mx-auto">
             <div className="p-4 bg-amber-500/10 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
               <Crown className="h-10 w-10 text-amber-500" />
@@ -167,7 +167,7 @@ const OpportunityDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="container mx-auto px-4 pt-24 pb-16 text-center">
+        <div className="container mx-auto px-4 pt-28 md:pt-32 pb-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Opportunité non trouvée</h1>
           <Button onClick={() => navigate('/opportunities')}>
             <ArrowLeft className="h-4 w-4 mr-2" /> Retour
@@ -191,7 +191,7 @@ const OpportunityDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="pt-20">
+      <main className="pt-28 md:pt-32">
         <ArticleLayout
           backHref="/opportunities"
           backLabel="Retour aux opportunités"

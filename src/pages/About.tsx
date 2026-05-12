@@ -103,7 +103,7 @@ const About = () => {
       
       <main>
         {/* Hero Section */}
-        <section className="relative pt-24 pb-16 bg-gradient-hero text-primary-foreground">
+        <section className="relative pt-28 md:pt-32 pb-16 bg-gradient-hero text-primary-foreground">
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto text-center">
               <span className="inline-block px-4 py-2 bg-accent/20 rounded-full text-accent font-semibold text-sm mb-6">

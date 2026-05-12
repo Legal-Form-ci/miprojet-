@@ -130,7 +130,7 @@ const SubscriptionCheckout = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="container mx-auto px-4 pt-24 pb-16 text-center">
+        <div className="container mx-auto px-4 pt-28 md:pt-32 pb-16 text-center">
           <AlertCircle className="h-16 w-16 text-destructive mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Plan non trouvé</h1>
           <p className="text-muted-foreground mb-6">Le plan sélectionné n'existe pas ou n'est plus disponible.</p>
@@ -147,7 +147,7 @@ const SubscriptionCheckout = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-16">
+      <main className="container mx-auto px-4 pt-28 md:pt-32 pb-16">
         <Button 
           variant="ghost" 
           onClick={() => navigate('/subscription')}

@@ -239,7 +239,7 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-16">
+      <main className="container mx-auto px-4 pt-28 md:pt-32 pb-16">
         <section className="max-w-md mx-auto">
           <div className="bg-card border border-border rounded-2xl p-8 shadow-elegant">
             <div className="text-center mb-8">

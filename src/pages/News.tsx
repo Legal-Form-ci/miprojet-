@@ -158,7 +158,7 @@ const News = () => {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navigation />
-        <main className="flex-1 pt-20">
+        <main className="flex-1 pt-28 md:pt-32">
           <ArticleLayout
             backHref="/news"
             backLabel="Retour aux actualités"
@@ -203,7 +203,7 @@ const News = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-28 md:pt-32">
         {/* Header */}
         <section className="bg-gradient-to-br from-primary via-primary to-primary/90 py-14 md:py-20 text-primary-foreground relative overflow-hidden">
           <div className="absolute top-0 right-0 w-72 h-72 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />

@@ -124,7 +124,7 @@ const DocumentDownload = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="container mx-auto px-4 pt-24 pb-16 text-center">
+        <div className="container mx-auto px-4 pt-28 md:pt-32 pb-16 text-center">
           <h1 className="text-2xl font-bold mb-4">Document introuvable</h1>
           <Button onClick={() => navigate('/')}>Retour à l'accueil</Button>
         </div>
@@ -138,7 +138,7 @@ const DocumentDownload = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-16">
+      <main className="container mx-auto px-4 pt-28 md:pt-32 pb-16">
         <div className="max-w-3xl mx-auto">
           <Card className="bg-gradient-to-br from-primary/5 via-accent/5 to-success/5 border-primary/20">
             <CardContent className="p-8">
