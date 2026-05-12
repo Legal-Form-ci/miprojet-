@@ -151,7 +151,7 @@ const FAQ = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navigation />
       
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-28 md:pt-32">
         {/* Header */}
         <section className="bg-primary py-16 text-primary-foreground">
           <div className="container mx-auto px-4 text-center">

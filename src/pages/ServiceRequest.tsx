@@ -378,7 +378,7 @@ const ServiceRequest = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <main className="container mx-auto px-4 pt-24 pb-16">
+        <main className="container mx-auto px-4 pt-28 md:pt-32 pb-16">
           <Card className="max-w-lg mx-auto text-center p-8">
             <CardHeader>
               <CardTitle>{t('auth.required') || "Connexion requise"}</CardTitle>
@@ -403,7 +403,7 @@ const ServiceRequest = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="pt-24 pb-16">
+      <main className="pt-28 md:pt-32 pb-16">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {/* Header */}

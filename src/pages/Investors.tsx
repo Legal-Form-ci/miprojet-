@@ -134,7 +134,7 @@ const Investors = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 pt-24 pb-16">
+      <main className="container mx-auto px-4 pt-28 md:pt-32 pb-16">
         {/* Hero Section */}
         <div className="text-center mb-12">
           <Badge className="mb-4 bg-primary/10 text-primary">INVESTISSEURS</Badge>

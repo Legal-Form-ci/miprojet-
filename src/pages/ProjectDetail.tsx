@@ -189,7 +189,7 @@ const ProjectDetail = () => {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="container mx-auto px-4 pt-24 pb-16 text-center">
+        <div className="container mx-auto px-4 pt-28 md:pt-32 pb-16 text-center">
           <h1 className="text-2xl font-bold mb-4">{t('projects.notFound') || "Projet non trouvé"}</h1>
           <Button onClick={() => navigate('/projects')}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -217,7 +217,7 @@ const ProjectDetail = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="pt-24 pb-16">
+      <main className="pt-28 md:pt-32 pb-16">
         {/* Hero Section */}
         <section className="bg-gradient-hero py-12">
           <div className="container mx-auto px-4">

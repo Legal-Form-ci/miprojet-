@@ -74,7 +74,7 @@ const Contact = () => {
     <div className="min-h-screen bg-background">
       <Navigation />
       
-      <main className="pt-24">
+      <main className="pt-28 md:pt-32">
         {/* Hero */}
         <section className="py-16 bg-gradient-hero">
           <div className="container mx-auto px-4 text-center">
