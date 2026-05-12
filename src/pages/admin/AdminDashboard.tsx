@@ -46,7 +46,9 @@ const AdminDashboard = () => {
   const { user, isAdmin, loading, adminChecked, signOut } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth >= 1024 : false
+  );
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
@@ -80,38 +82,44 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-muted/30">
       {/* Top Bar */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center px-4">
+      <header
+        className="fixed top-0 left-0 right-0 h-16 border-b border-white/10 z-50 flex items-center px-3 sm:px-4 text-white shadow-elegant"
+        style={{ background: "var(--gradient-brand)" }}
+      >
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 hover:bg-muted rounded-lg mr-4"
+          className="p-2 hover:bg-white/10 rounded-lg mr-2 sm:mr-4 text-white"
+          aria-label="Toggle menu"
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
-        
-        <div className="flex items-center gap-2">
-          <LayoutDashboard className="h-6 w-6 text-primary" />
-          <span className="font-bold text-xl">MIPROJET Admin</span>
+
+        <div className="flex items-center gap-2 min-w-0">
+          <LayoutDashboard className="h-5 w-5 sm:h-6 sm:w-6 text-white shrink-0" />
+          <span className="font-bold text-base sm:text-xl truncate">MIPROJET Admin</span>
         </div>
-        
-        <div className="flex-1 max-w-md mx-8">
+
+        <div className="hidden md:block flex-1 max-w-md mx-4 lg:mx-8">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t('common.search') || "Rechercher..."} className="pl-10 bg-muted/50" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/70" />
+            <Input
+              placeholder={t('common.search') || "Rechercher..."}
+              className="pl-10 bg-white/15 border-white/20 text-white placeholder:text-white/70 focus-visible:ring-white/40"
+            />
           </div>
         </div>
-        
-        <div className="flex items-center gap-4">
+
+        <div className="flex items-center gap-2 sm:gap-4 ml-auto">
           <NotificationBell />
-          
-          <div className="flex items-center gap-3">
+          <div className="hidden sm:flex items-center gap-3">
             <div className="text-right">
-              <p className="text-sm font-medium text-foreground">{user?.email}</p>
-              <Badge variant="secondary" className="text-xs">Admin</Badge>
+              <p className="text-xs sm:text-sm font-medium text-white truncate max-w-[160px]">{user?.email}</p>
+              <Badge variant="secondary" className="text-[10px] bg-white/20 text-white border-0">Admin</Badge>
             </div>
-            <Button variant="ghost" size="icon" onClick={signOut}>
-              <LogOut className="h-4 w-4" />
-            </Button>
           </div>
+          <Button variant="ghost" size="icon" onClick={signOut} className="text-white hover:bg-white/10">
+            <LogOut className="h-4 w-4" />
+          </Button>
         </div>
       </header>
 
